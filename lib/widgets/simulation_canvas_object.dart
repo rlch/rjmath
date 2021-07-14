@@ -10,6 +10,7 @@ class SimulationCanvasObject
     required this.edges,
     required this.constraints,
     required this.weight,
+    required this.edgeColor,
     Key? key,
   }) : super(child: child, key: key);
 
@@ -17,6 +18,7 @@ class SimulationCanvasObject
   final List<Edge> edges;
   final BoxConstraints constraints;
   final double weight;
+  final Color edgeColor;
 
   @override
   void applyParentData(RenderObject renderObject) {
@@ -36,6 +38,10 @@ class SimulationCanvasObject
 
     if (parentData.weight != weight) {
       parentData.weight = weight;
+    }
+
+    if (parentData.edgeColor != edgeColor) {
+      parentData.edgeColor = edgeColor;
     }
 
     final targetObject = renderObject.parent;

@@ -22,9 +22,11 @@ class SimulationCanvasParentData extends ContainerBoxParentData<RenderBox> {
     required this.edges,
     required this.weight,
     required this.constraints,
+    required this.edgeColor,
   });
 
   List<Edge> edges;
+  Color edgeColor;
   double weight;
   BoxConstraints constraints;
 }
@@ -38,6 +40,7 @@ class RenderSimulationCanvas extends RenderBox
     if (child.parentData is! SimulationCanvasParentData) {
       child.parentData = SimulationCanvasParentData(
         edges: [],
+        edgeColor: Colors.grey,
         weight: 0,
         constraints: BoxConstraints.tight(Size(0, 0)),
       );

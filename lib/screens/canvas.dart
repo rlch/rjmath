@@ -36,14 +36,14 @@ class _CanvasScreenState extends State<CanvasScreen>
       phyllotaxisRadius: 20,
     )
       ..nodes = resumeNodes
-      ..setForce('collide', f.Collide(radius: 10))
-      // ..setForce('radial', f.Radial(radius: 400))
+      ..setForce('collide', f.Collide(radius: 55))
+      ..setForce('radial', f.Radial(radius: 400))
       ..setForce('manyBody', f.ManyBody(strength: -40))
       // ..setForce(
       //     'center', f.Center(size.width / 2, size.height / 2, strength: 0.5))
       ..setForce(
         'edges',
-        f.Edges(edges: edges, distance: 30),
+        f.Edges(edges: edges, distance: 200),
       )
       ..setForce('x', f.XPositioning(x: size.width / 2))
       ..setForce('y', f.YPositioning(y: size.height / 2))
@@ -82,6 +82,7 @@ class _CanvasScreenState extends State<CanvasScreen>
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final nodeColor = Theme.of(context).primaryColor;
+    final edgeColor = Theme.of(context).dividerColor;
 
     return Scaffold(
       body: Container(
@@ -102,6 +103,7 @@ class _CanvasScreenState extends State<CanvasScreen>
                       constraints: BoxConstraints.tight(Size(100, 100)),
                       node: node,
                       edges: [...edges.where((e) => e.source == node)],
+                      edgeColor: edgeColor,
                       child: NodeHitTester(
                         node,
                         onDragUpdate: (update) {

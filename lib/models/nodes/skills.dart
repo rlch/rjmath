@@ -9,6 +9,11 @@ class Skill extends ResumeNode {
         );
 
   @override
+  bool operator ==(Object o) => o is Skill && o.title == title;
+  @override
+  int get hashCode => title.hashCode;
+
+  @override
   Widget build(BuildContext context) {
     return Text(
       title,
