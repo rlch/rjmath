@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:rjmath/models/nodes/node.dart';
 import 'package:rjmath/widgets/node_hit_test.dart';
 import 'package:rjmath/widgets/simulation_canvas.dart';
 import 'package:rjmath/widgets/simulation_canvas_object.dart';
@@ -17,8 +18,8 @@ class CanvasScreen extends StatefulWidget {
 class _CanvasScreenState extends State<CanvasScreen>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker;
-  late final f.ForceSimulation simulation;
-  late final List<f.Edge> edges;
+  late final f.ForceSimulation<ResumeNode> simulation;
+  final List<f.Edge<ResumeNode>> edges = resumeEdges;
   late final List<int> edgeCounts;
   int maxEdgeCount = 0;
   int i = 0;
@@ -29,28 +30,12 @@ class _CanvasScreenState extends State<CanvasScreen>
 
     final size = MediaQuery.of(context).size;
 
-    final nodes = List.generate(
-      140,
-      (index) => f.Node(),
-    );
-    final r = Random();
-    edges = [
-      for (final n in nodes)
-        if (r.nextDouble() < 0.8) ...[
-          for (int i = 0; i < (r.nextDouble() * 5).toInt(); i++)
-            f.Edge(
-              source: n,
-              target: nodes[(nodes.length * r.nextDouble()).toInt()],
-            ),
-        ]
-    ];
-
     simulation = f.ForceSimulation(
       phyllotaxisX: size.width / 2,
       phyllotaxisY: size.height / 2,
       phyllotaxisRadius: 20,
     )
-      ..nodes = nodes
+      ..nodes = resumeNodes
       ..setForce('collide', f.Collide(radius: 10))
       // ..setForce('radial', f.Radial(radius: 400))
       ..setForce('manyBody', f.ManyBody(strength: -40))
@@ -73,7 +58,7 @@ class _CanvasScreenState extends State<CanvasScreen>
     })
       ..start();
 
-    edgeCounts = List.filled(nodes.length, 0);
+    edgeCounts = List.filled(resumeNodes.length, 0);
     for (int i = 0; i < edges.length; i++) {
       final edge = edges[i];
       edge.index = i;
@@ -96,10 +81,10 @@ class _CanvasScreenState extends State<CanvasScreen>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final nodeColor = Theme.of(context).primaryColor;
 
     return Scaffold(
       body: Container(
-        color: Colors.black,
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
         child: ConstrainedBox(
@@ -114,7 +99,7 @@ class _CanvasScreenState extends State<CanvasScreen>
                         : edgeCounts[node.index!] / maxEdgeCount;
                     return SimulationCanvasObject(
                       weight: weight,
-                      constraints: BoxConstraints.tight(Size(10, 10)),
+                      constraints: BoxConstraints.tight(Size(100, 100)),
                       node: node,
                       edges: [...edges.where((e) => e.source == node)],
                       child: NodeHitTester(
@@ -132,13 +117,13 @@ class _CanvasScreenState extends State<CanvasScreen>
                           simulation.alphaTarget = 0;
                         },
                         child: Container(
-                          width: 10,
-                          height: 10,
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.white),
-                            color: Colors.white.withOpacity(sqrt(weight)),
+                            border: Border.all(color: nodeColor),
+                            color: nodeColor.withOpacity(sqrt(weight)),
                             shape: BoxShape.circle,
                           ),
+                          alignment: Alignment.center,
+                          child: node.build(context),
                         ),
                       ),
                     );
