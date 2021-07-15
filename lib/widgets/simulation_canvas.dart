@@ -4,6 +4,15 @@ import 'package:d3_force_flutter/d3_force_flutter.dart' hide Center;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:vector_math/vector_math_64.dart' show Ray, Sphere, Vector3;
+
+extension on Offset {
+  Vector3 get vec => Vector3(dx, dy, 0);
+}
+
+extension on Vector3 {
+  Offset get offset => Offset(x, y);
+}
 
 class SimulationCanvas extends MultiChildRenderObjectWidget {
   SimulationCanvas({
@@ -21,13 +30,14 @@ class SimulationCanvasParentData extends ContainerBoxParentData<RenderBox> {
   SimulationCanvasParentData({
     required this.edges,
     required this.weight,
+    required this.nodeRadius,
     required this.constraints,
     required this.edgeColor,
   });
 
   List<Edge> edges;
   Color edgeColor;
-  double weight;
+  double weight, nodeRadius;
   BoxConstraints constraints;
 }
 
@@ -42,6 +52,7 @@ class RenderSimulationCanvas extends RenderBox
         edges: [],
         edgeColor: Colors.grey,
         weight: 0,
+        nodeRadius: 0,
         constraints: BoxConstraints.tight(Size(0, 0)),
       );
     }
@@ -56,12 +67,22 @@ class RenderSimulationCanvas extends RenderBox
 
     while (child != null) {
       final pd = child.parentData! as SimulationCanvasParentData;
-      final edgeOffset = Offset(child.size.width / 2, child.size.height / 2);
+      final centerOffset = Offset(child.size.width / 2, child.size.height / 2);
+      final canvasOffset = offset + centerOffset;
+
       for (final edge in pd.edges) {
         final e = edge.target;
+
+        final Vector3 A = (pd.offset + canvasOffset).vec,
+            B = (Offset(e.x, e.y) + canvasOffset).vec,
+            V = B - A;
+
+        final edgeA = A + V.normalized() * pd.nodeRadius,
+            edgeB = B - V.normalized() * pd.nodeRadius;
+
         canvas.drawLine(
-          pd.offset + offset + edgeOffset,
-          Offset(e.x, e.y) + offset + edgeOffset,
+          edgeA.offset,
+          edgeB.offset,
           Paint()
             ..color = Colors.grey.withOpacity(pd.weight)
             ..strokeWidth = 0.75,

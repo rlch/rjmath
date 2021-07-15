@@ -10,6 +10,7 @@ class SimulationCanvasObject
     required this.edges,
     required this.constraints,
     required this.weight,
+    required this.nodeRadius,
     required this.edgeColor,
     Key? key,
   }) : super(child: child, key: key);
@@ -17,7 +18,7 @@ class SimulationCanvasObject
   final Node node;
   final List<Edge> edges;
   final BoxConstraints constraints;
-  final double weight;
+  final double weight, nodeRadius;
   final Color edgeColor;
 
   @override
@@ -42,6 +43,10 @@ class SimulationCanvasObject
 
     if (parentData.edgeColor != edgeColor) {
       parentData.edgeColor = edgeColor;
+    }
+
+    if (parentData.nodeRadius != nodeRadius) {
+      parentData.nodeRadius = nodeRadius;
     }
 
     final targetObject = renderObject.parent;

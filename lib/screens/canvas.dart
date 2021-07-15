@@ -21,6 +21,7 @@ class _CanvasScreenState extends State<CanvasScreen>
   late final f.ForceSimulation<ResumeNode> simulation;
   final List<f.Edge<ResumeNode>> edges = resumeEdges;
   late final List<int> edgeCounts;
+  final double nodeRadius = 50;
   int maxEdgeCount = 0;
   int i = 0;
 
@@ -36,7 +37,7 @@ class _CanvasScreenState extends State<CanvasScreen>
       phyllotaxisRadius: 20,
     )
       ..nodes = resumeNodes
-      ..setForce('collide', f.Collide(radius: 55))
+      ..setForce('collide', f.Collide(radius: nodeRadius + 5))
       ..setForce('radial', f.Radial(radius: 400))
       ..setForce('manyBody', f.ManyBody(strength: -40))
       // ..setForce(
@@ -86,8 +87,8 @@ class _CanvasScreenState extends State<CanvasScreen>
 
     return Scaffold(
       body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
+        width: size.width,
+        height: size.height,
         child: ConstrainedBox(
           constraints: BoxConstraints.tight(size),
           child: SimulationCanvas(
@@ -100,8 +101,11 @@ class _CanvasScreenState extends State<CanvasScreen>
                         : edgeCounts[node.index!] / maxEdgeCount;
                     return SimulationCanvasObject(
                       weight: weight,
-                      constraints: BoxConstraints.tight(Size(100, 100)),
+                      constraints: BoxConstraints.tight(
+                        Size(nodeRadius * 2, nodeRadius * 2),
+                      ),
                       node: node,
+                      nodeRadius: nodeRadius,
                       edges: [...edges.where((e) => e.source == node)],
                       edgeColor: edgeColor,
                       child: NodeHitTester(
