@@ -12,13 +12,15 @@ class SimulationCanvasObject
     required this.weight,
     required this.nodeRadius,
     required this.edgeColor,
+    this.arrowHeight = 10,
+    this.arrowWidth = 10,
     Key? key,
   }) : super(child: child, key: key);
 
   final Node node;
   final List<Edge> edges;
   final BoxConstraints constraints;
-  final double weight, nodeRadius;
+  final double weight, nodeRadius, arrowHeight, arrowWidth;
   final Color edgeColor;
 
   @override

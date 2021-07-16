@@ -15,16 +15,20 @@ class Skill extends ResumeNode {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: TextStyle(
-        color: Colors.white,
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(title),
+        Text(
+          'Skill',
+          style: Theme.of(context).textTheme.caption,
+        )
+      ],
     );
   }
 }
 
-final _test1 = Skill(title: 'test1'),
-    _test2 = Skill(title: 'test2'),
-    _test3 = Skill(title: 'test3'),
-    _test4 = Skill(title: 'test4');
+final _test1 = Skill(title: 'Dart/Flutter'),
+    _test2 = Skill(title: 'Python'),
+    _test3 = Skill(title: 'R'),
+    _test4 = Skill(title: 'ML');

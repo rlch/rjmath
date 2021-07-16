@@ -4,7 +4,7 @@ import 'package:d3_force_flutter/d3_force_flutter.dart' hide Center;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:vector_math/vector_math_64.dart' show Ray, Sphere, Vector3;
+import 'package:vector_math/vector_math_64.dart' show Vector3;
 
 extension on Offset {
   Vector3 get vec => Vector3(dx, dy, 0);
@@ -33,11 +33,13 @@ class SimulationCanvasParentData extends ContainerBoxParentData<RenderBox> {
     required this.nodeRadius,
     required this.constraints,
     required this.edgeColor,
+    required this.arrowWidth,
+    required this.arrowHeight,
   });
 
   List<Edge> edges;
   Color edgeColor;
-  double weight, nodeRadius;
+  double weight, nodeRadius, arrowWidth, arrowHeight;
   BoxConstraints constraints;
 }
 
@@ -53,6 +55,8 @@ class RenderSimulationCanvas extends RenderBox
         edgeColor: Colors.grey,
         weight: 0,
         nodeRadius: 0,
+        arrowWidth: 0,
+        arrowHeight: 0,
         constraints: BoxConstraints.tight(Size(0, 0)),
       );
     }
@@ -75,18 +79,33 @@ class RenderSimulationCanvas extends RenderBox
 
         final Vector3 A = (pd.offset + canvasOffset).vec,
             B = (Offset(e.x, e.y) + canvasOffset).vec,
-            V = B - A;
+            V = (B - A).normalized();
+        final v = V * pd.nodeRadius, vt = V * (pd.nodeRadius + pd.arrowHeight);
 
-        final edgeA = A + V.normalized() * pd.nodeRadius,
-            edgeB = B - V.normalized() * pd.nodeRadius;
+        final edgeA = A + v, edgeB = B - v;
+        final edgePaint = Paint()
+          ..color = Colors.grey.withOpacity(pd.weight)
+          ..strokeWidth = 0.75;
 
-        canvas.drawLine(
-          edgeA.offset,
-          edgeB.offset,
-          Paint()
-            ..color = Colors.grey.withOpacity(pd.weight)
-            ..strokeWidth = 0.75,
-        );
+        final orthog = Vector3(-V.y, V.x, 0);
+        final triangleEnd = (B - vt);
+        final edgeBt1 = triangleEnd + orthog * (pd.arrowWidth / 2),
+            edgeBt2 = triangleEnd - orthog * (pd.arrowWidth / 2);
+
+        canvas
+          ..drawLine(
+            edgeA.offset,
+            (B - vt).offset,
+            edgePaint,
+          )
+          ..drawPath(
+            Path()
+              ..lineTo(edgeB.x, edgeB.y)
+              ..lineTo(edgeBt1.x, edgeBt1.y)
+              ..lineTo(edgeBt2.x, edgeBt2.y)
+              ..lineTo(edgeB.x, edgeB.y),
+            edgePaint,
+          );
       }
       child = pd.nextSibling;
     }
