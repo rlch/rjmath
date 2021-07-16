@@ -2,11 +2,10 @@ part of 'node.dart';
 
 class Skill extends ResumeNode {
   Skill({
-    required String title,
-  }) : super(
-          ResumeNodeType.skill,
-          title,
-        );
+    required this.title,
+  }) : super(ResumeNodeType.skill);
+
+  final String title;
 
   @override
   bool operator ==(Object o) => o is Skill && o.title == title;
@@ -15,20 +14,21 @@ class Skill extends ResumeNode {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(title),
-        Text(
-          'Skill',
-          style: Theme.of(context).textTheme.caption,
-        )
-      ],
+    return AutoSizeText(
+      title,
+      textAlign: TextAlign.center,
+      minFontSize: 8,
+      wrapWords: false,
     );
   }
 }
 
-final _test1 = Skill(title: 'Dart/Flutter'),
-    _test2 = Skill(title: 'Python'),
-    _test3 = Skill(title: 'R'),
-    _test4 = Skill(title: 'ML');
+final _dartFlutter = Skill(title: 'Dart/Flutter'),
+    _python = Skill(title: 'Python'),
+    _r = Skill(title: 'R'),
+    _ds = Skill(title: 'Data Science'),
+    _tf = Skill(title: 'TensorFlow'),
+    _dp = Skill(title: 'Data processing'),
+    _crypto = Skill(title: 'Cryptography'),
+    _math = Skill(title: 'Mathematics'),
+    _graphTheory = Skill(title: 'Graph Theory');

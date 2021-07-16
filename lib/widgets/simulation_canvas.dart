@@ -4,6 +4,7 @@ import 'package:d3_force_flutter/d3_force_flutter.dart' hide Center;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:rjmath/models/nodes/node.dart';
 import 'package:vector_math/vector_math_64.dart' show Vector3;
 
 extension on Offset {
@@ -28,18 +29,18 @@ class SimulationCanvas extends MultiChildRenderObjectWidget {
 
 class SimulationCanvasParentData extends ContainerBoxParentData<RenderBox> {
   SimulationCanvasParentData({
+    required this.node,
     required this.edges,
-    required this.weight,
-    required this.nodeRadius,
     required this.constraints,
     required this.edgeColor,
     required this.arrowWidth,
     required this.arrowHeight,
   });
 
-  List<Edge> edges;
+  ResumeNode node;
+  List<Edge<ResumeNode>> edges;
   Color edgeColor;
-  double weight, nodeRadius, arrowWidth, arrowHeight;
+  double arrowWidth, arrowHeight;
   BoxConstraints constraints;
 }
 
@@ -51,10 +52,9 @@ class RenderSimulationCanvas extends RenderBox
   void setupParentData(covariant RenderObject child) {
     if (child.parentData is! SimulationCanvasParentData) {
       child.parentData = SimulationCanvasParentData(
+        node: Skill(title: ''),
         edges: [],
         edgeColor: Colors.grey,
-        weight: 0,
-        nodeRadius: 0,
         arrowWidth: 0,
         arrowHeight: 0,
         constraints: BoxConstraints.tight(Size(0, 0)),
@@ -71,31 +71,33 @@ class RenderSimulationCanvas extends RenderBox
 
     while (child != null) {
       final pd = child.parentData! as SimulationCanvasParentData;
-      final centerOffset = Offset(child.size.width / 2, child.size.height / 2);
-      final canvasOffset = offset + centerOffset;
+      final centerOffset = Offset(pd.node.radius, pd.node.radius);
 
       for (final edge in pd.edges) {
+        ///? can't get parentData of this node
         final e = edge.target;
 
-        final Vector3 A = (pd.offset + canvasOffset).vec,
-            B = (Offset(e.x, e.y) + canvasOffset).vec,
+        final Vector3 A = (pd.offset + offset + centerOffset).vec,
+            B = (Offset(e.x + e.radius, e.y + e.radius) + offset).vec,
             V = (B - A).normalized();
-        final v = V * pd.nodeRadius, vt = V * (pd.nodeRadius + pd.arrowHeight);
+        final vA = V * pd.node.radius,
+            vB = V * e.radius,
+            vtB = V * (e.radius + pd.arrowHeight);
 
-        final edgeA = A + v, edgeB = B - v;
+        final edgeA = A + vA, edgeB = B - vB;
         final edgePaint = Paint()
-          ..color = Colors.grey.withOpacity(pd.weight)
+          ..color = Colors.grey.withOpacity(pd.node.weight)
           ..strokeWidth = 0.75;
 
         final orthog = Vector3(-V.y, V.x, 0);
-        final triangleEnd = (B - vt);
+        final triangleEnd = (B - vtB);
         final edgeBt1 = triangleEnd + orthog * (pd.arrowWidth / 2),
             edgeBt2 = triangleEnd - orthog * (pd.arrowWidth / 2);
 
         canvas
           ..drawLine(
             edgeA.offset,
-            (B - vt).offset,
+            (B - vtB).offset,
             edgePaint,
           )
           ..drawPath(
@@ -129,6 +131,7 @@ class RenderSimulationCanvas extends RenderBox
     required BoxConstraints constraints,
     required bool dry,
   }) {
+    // double xStart = 0, xEnd = 0, yStart = 0, yEnd = 0;
     RenderBox? child = firstChild;
 
     while (child != null) {
@@ -143,6 +146,18 @@ class RenderSimulationCanvas extends RenderBox
         child.getDryLayout(childParentData.constraints);
       }
 
+      // xStart = min(xStart, childParentData.offset.dx);
+      // xEnd = max(
+      //   xEnd,
+      //   childParentData.offset.dx + childParentData.constraints.maxWidth,
+      // );
+
+      // yStart = min(yStart, childParentData.offset.dy);
+      // yEnd = max(
+      //   yEnd,
+      //   childParentData.offset.dy + childParentData.constraints.maxHeight,
+      // );
+
       child = childParentData.nextSibling;
     }
 
@@ -150,48 +165,79 @@ class RenderSimulationCanvas extends RenderBox
   }
 
   @override
-  double computeMinIntrinsicHeight(double width) {
-    double height = 0;
+  double computeMaxIntrinsicHeight(double width) {
+    double start = 0, end = 0;
 
     RenderBox? child = firstChild;
     while (child != null) {
       final childParentData = child.parentData! as SimulationCanvasParentData;
-      height += child.getMinIntrinsicHeight(width);
+      start = min(start, childParentData.offset.dy);
+      end = max(
+        end,
+        childParentData.offset.dy + child.getMaxIntrinsicHeight(width),
+      );
 
       child = childParentData.nextSibling;
     }
 
-    return height;
+    return end - start;
+  }
+
+  @override
+  double computeMinIntrinsicHeight(double width) {
+    double start = 0, end = 0;
+
+    RenderBox? child = firstChild;
+    while (child != null) {
+      final childParentData = child.parentData! as SimulationCanvasParentData;
+      start = min(start, childParentData.offset.dy);
+      end = max(
+        end,
+        childParentData.offset.dy + child.getMinIntrinsicHeight(width),
+      );
+
+      child = childParentData.nextSibling;
+    }
+
+    return end - start;
   }
 
   @override
   double computeMaxIntrinsicWidth(double height) {
-    double width = 0;
+    double start = 0, end = 0;
 
     RenderBox? child = firstChild;
     while (child != null) {
       final childParentData = child.parentData! as SimulationCanvasParentData;
-      width = max(width, child.getMaxIntrinsicWidth(height));
+      start = min(start, childParentData.offset.dx);
+      end = max(
+        end,
+        childParentData.offset.dx + child.getMaxIntrinsicWidth(height),
+      );
 
       child = childParentData.nextSibling;
     }
 
-    return width;
+    return end - start;
   }
 
   @override
   double computeMinIntrinsicWidth(double height) {
-    double width = 0;
+    double start = 0, end = 0;
 
     RenderBox? child = firstChild;
     while (child != null) {
       final childParentData = child.parentData! as SimulationCanvasParentData;
-      width = max(width, child.getMinIntrinsicWidth(height));
+      start = min(start, childParentData.offset.dx);
+      end = max(
+        end,
+        childParentData.offset.dx + child.getMinIntrinsicWidth(height),
+      );
 
       child = childParentData.nextSibling;
     }
 
-    return width;
+    return end - start;
   }
 
   /// Baseline

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:rjmath/extensions/color.dart';
 import 'package:rjmath/models/nodes/node.dart';
 import 'package:rjmath/widgets/node_hit_test.dart';
 import 'package:rjmath/widgets/simulation_canvas.dart';
@@ -21,9 +22,8 @@ class _CanvasScreenState extends State<CanvasScreen>
   late final f.ForceSimulation<ResumeNode> simulation;
   final List<f.Edge<ResumeNode>> edges = resumeEdges;
   late final List<int> edgeCounts;
-  final double nodeRadius = 50;
+  final double maxNodeRadius = 60, minNodeRadius = 30;
   int maxEdgeCount = 0;
-  int i = 0;
 
   @override
   void didChangeDependencies() {
@@ -37,9 +37,9 @@ class _CanvasScreenState extends State<CanvasScreen>
       phyllotaxisRadius: 20,
     )
       ..nodes = resumeNodes
-      ..setForce('collide', f.Collide(radius: nodeRadius + 5))
+      ..setForce('collide', f.Collide(radius: maxNodeRadius * 2 + 5))
       ..setForce('radial', f.Radial(radius: 400))
-      ..setForce('manyBody', f.ManyBody(strength: -40))
+      ..setForce('manyBody', f.ManyBody(strength: -10))
       // ..setForce(
       //     'center', f.Center(size.width / 2, size.height / 2, strength: 0.5))
       ..setForce(
@@ -51,11 +51,7 @@ class _CanvasScreenState extends State<CanvasScreen>
       ..alpha = 1;
 
     _ticker = this.createTicker((_) {
-      i++;
-      // if (i% 10 != 0) return;
-      setState(() {
-        simulation.tick();
-      });
+      setState(() => simulation.tick());
     })
       ..start();
 
@@ -81,39 +77,39 @@ class _CanvasScreenState extends State<CanvasScreen>
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final nodeColor = Theme.of(context).primaryColor;
     final edgeColor = Theme.of(context).dividerColor;
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      body: Container(
-        width: size.width,
-        height: size.height,
-        child: ConstrainedBox(
-          constraints: BoxConstraints.tight(size),
-          child: SimulationCanvas(
-            children: [
-              for (final node in simulation.nodes)
-                if (!node.isNaN)
-                  Builder(builder: (context) {
-                    final double weight = maxEdgeCount == 0
+      body: InteractiveViewer(
+        minScale: 0.2,
+        maxScale: 2,
+        boundaryMargin: EdgeInsets.all(size.width * 2),
+        child: SimulationCanvas(
+          children: [
+            for (final node in simulation.nodes)
+              if (!node.isNaN)
+                Builder(
+                  builder: (context) {
+                    final double weight = node.weight = maxEdgeCount == 0
                         ? 0
                         : edgeCounts[node.index!] / maxEdgeCount;
+                    final double radius = node.radius = minNodeRadius +
+                        weight * (maxNodeRadius - minNodeRadius);
                     return SimulationCanvasObject(
-                      weight: weight,
                       constraints: BoxConstraints.tight(
-                        Size(nodeRadius * 2, nodeRadius * 2),
+                        Size(radius * 2, radius * 2),
                       ),
                       node: node,
-                      nodeRadius: nodeRadius,
                       edges: [...edges.where((e) => e.source == node)],
                       edgeColor: edgeColor,
                       child: NodeHitTester(
                         node,
                         onDragUpdate: (update) {
                           node
-                            ..fx = update.globalPosition.dx
-                            ..fy = update.globalPosition.dy;
+                            ..fx = update.globalPosition.dx - radius
+                            ..fy = update.globalPosition.dy - radius;
                           simulation..alphaTarget = 0.5;
                         },
                         onDragEnd: (_) {
@@ -122,20 +118,49 @@ class _CanvasScreenState extends State<CanvasScreen>
                             ..fy = null;
                           simulation.alphaTarget = 0;
                         },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: nodeColor),
-                            color: nodeColor.withOpacity(sqrt(weight)),
-                            shape: BoxShape.circle,
-                          ),
+                        child: Stack(
+                          clipBehavior: Clip.none,
                           alignment: Alignment.center,
-                          child: node.build(context),
+                          children: [
+                            Container(
+                              width: radius * 2,
+                              height: radius * 2,
+                              decoration: BoxDecoration(
+                                border: Border.all(color: nodeColor),
+                                color: nodeColor.withOpacity(sqrt(weight)),
+                                shape: BoxShape.circle,
+                              ),
+                              alignment: Alignment.center,
+                              child: node.build(context),
+                            ),
+                            Positioned(
+                              bottom: -10,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    width: 2,
+                                    color: node.type.color.darken(),
+                                  ),
+                                  color: node.type.color,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                  vertical: 5,
+                                  horizontal: 10,
+                                ),
+                                child: Text(
+                                  node.type.string,
+                                  style: Theme.of(context).textTheme.caption,
+                                ),
+                              ),
+                            )
+                          ],
                         ),
                       ),
                     );
-                  }),
-            ],
-          ),
+                  },
+                ),
+          ],
         ),
       ),
     );

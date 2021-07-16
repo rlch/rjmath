@@ -1,3 +1,4 @@
+import 'package:rjmath/models/nodes/node.dart';
 import 'package:rjmath/widgets/simulation_canvas.dart';
 import 'package:flutter/material.dart';
 import 'package:d3_force_flutter/d3_force_flutter.dart';
@@ -9,18 +10,16 @@ class SimulationCanvasObject
     required this.node,
     required this.edges,
     required this.constraints,
-    required this.weight,
-    required this.nodeRadius,
     required this.edgeColor,
     this.arrowHeight = 10,
     this.arrowWidth = 10,
     Key? key,
   }) : super(child: child, key: key);
 
-  final Node node;
-  final List<Edge> edges;
+  final ResumeNode node;
+  final List<Edge<ResumeNode>> edges;
   final BoxConstraints constraints;
-  final double weight, nodeRadius, arrowHeight, arrowWidth;
+  final double arrowHeight, arrowWidth;
   final Color edgeColor;
 
   @override
@@ -39,16 +38,20 @@ class SimulationCanvasObject
       parentData.constraints = constraints;
     }
 
-    if (parentData.weight != weight) {
-      parentData.weight = weight;
-    }
-
     if (parentData.edgeColor != edgeColor) {
       parentData.edgeColor = edgeColor;
     }
 
-    if (parentData.nodeRadius != nodeRadius) {
-      parentData.nodeRadius = nodeRadius;
+    if (parentData.arrowHeight != arrowHeight) {
+      parentData.arrowHeight = arrowHeight;
+    }
+
+    if (parentData.arrowWidth != arrowWidth) {
+      parentData.arrowWidth = arrowWidth;
+    }
+
+    if (parentData.node != node) {
+      parentData.node = node;
     }
 
     final targetObject = renderObject.parent;
