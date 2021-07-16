@@ -72,6 +72,11 @@ final List<ResumeNode> resumeNodes = [
   _japanese,
   _graphTheory,
   _gaming,
+  _stl,
+  _unimelb,
+  _ib,
+  _act,
+  _bcom,
 ];
 
 final Map<ResumeNode, Set<ResumeNode>?> _resumeEdges = {
@@ -98,7 +103,23 @@ final Map<ResumeNode, Set<ResumeNode>?> _resumeEdges = {
   },
   _math: {
     _graphTheory,
+    _crypto,
+    _act,
   },
+  _stl: {
+    _ib,
+    _japanese,
+    _spanish,
+  },
+  _unimelb: {
+    _bcom,
+    _act,
+    _math,
+  },
+  _act: {
+    _r,
+    _ds,
+  }
 };
 
 final List<f.Edge<ResumeNode>> resumeEdges = _resumeEdges.entries

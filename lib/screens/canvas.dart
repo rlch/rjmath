@@ -19,11 +19,22 @@ class CanvasScreen extends StatefulWidget {
 class _CanvasScreenState extends State<CanvasScreen>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker;
+  late final TransformationController _transformationController;
+
   late final f.ForceSimulation<ResumeNode> simulation;
   final List<f.Edge<ResumeNode>> edges = resumeEdges;
   late final List<int> edgeCounts;
   final double maxNodeRadius = 60, minNodeRadius = 30;
   int maxEdgeCount = 0;
+
+  int? selectedNodeIndex;
+  Set<int>? activeNodes;
+
+  @override
+  void initState() {
+    super.initState();
+    _transformationController = TransformationController();
+  }
 
   @override
   void didChangeDependencies() {
@@ -48,7 +59,7 @@ class _CanvasScreenState extends State<CanvasScreen>
       )
       ..setForce('x', f.XPositioning(x: size.width / 2))
       ..setForce('y', f.YPositioning(y: size.height / 2))
-      ..alpha = 1;
+      ..alpha = 2;
 
     _ticker = this.createTicker((_) {
       setState(() => simulation.tick());
@@ -65,11 +76,18 @@ class _CanvasScreenState extends State<CanvasScreen>
     for (final count in edgeCounts) {
       if (count > maxEdgeCount) maxEdgeCount = count;
     }
+    for (final node in simulation.nodes) {
+      node.weight =
+          maxEdgeCount == 0 ? 0 : edgeCounts[node.index!] / maxEdgeCount;
+      node.radius =
+          minNodeRadius + node.weight * (maxNodeRadius - minNodeRadius);
+    }
   }
 
   @override
   void dispose() {
     _ticker.dispose();
+    _transformationController.dispose();
     super.dispose();
   }
 
@@ -82,87 +100,103 @@ class _CanvasScreenState extends State<CanvasScreen>
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      body: InteractiveViewer(
-        minScale: 0.2,
-        maxScale: 2,
-        boundaryMargin: EdgeInsets.all(size.width * 2),
-        child: SimulationCanvas(
-          children: [
-            for (final node in simulation.nodes)
-              if (!node.isNaN)
-                Builder(
-                  builder: (context) {
-                    final double weight = node.weight = maxEdgeCount == 0
-                        ? 0
-                        : edgeCounts[node.index!] / maxEdgeCount;
-                    final double radius = node.radius = minNodeRadius +
-                        weight * (maxNodeRadius - minNodeRadius);
-                    return SimulationCanvasObject(
-                      constraints: BoxConstraints.tight(
-                        Size(radius * 2, radius * 2),
-                      ),
-                      node: node,
-                      edges: [...edges.where((e) => e.source == node)],
-                      edgeColor: edgeColor,
-                      child: NodeHitTester(
-                        node,
-                        onDragUpdate: (update) {
-                          node
-                            ..fx = update.globalPosition.dx - radius
-                            ..fy = update.globalPosition.dy - radius;
-                          simulation..alphaTarget = 0.5;
-                        },
-                        onDragEnd: (_) {
-                          node
-                            ..fx = null
-                            ..fy = null;
-                          simulation.alphaTarget = 0;
-                        },
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          alignment: Alignment.center,
-                          children: [
-                            Container(
-                              width: radius * 2,
-                              height: radius * 2,
-                              decoration: BoxDecoration(
-                                border: Border.all(color: nodeColor),
-                                color: nodeColor.withOpacity(sqrt(weight)),
-                                shape: BoxShape.circle,
-                              ),
-                              alignment: Alignment.center,
-                              child: node.build(context),
-                            ),
-                            Positioned(
-                              bottom: -10,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    width: 2,
-                                    color: node.type.color.darken(),
-                                  ),
-                                  color: node.type.color,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                  vertical: 5,
-                                  horizontal: 10,
-                                ),
-                                child: Text(
-                                  node.type.string,
-                                  style: Theme.of(context).textTheme.caption,
-                                ),
-                              ),
-                            )
-                          ],
+      body: Builder(builder: (viewerContext) {
+        return InteractiveViewer(
+          transformationController: _transformationController,
+          minScale: 0.2,
+          maxScale: 2,
+          boundaryMargin: EdgeInsets.all(size.width * 20),
+          child: SimulationCanvas(
+            children: [
+              for (final node in simulation.nodes)
+                if (!node.isNaN)
+                  Builder(
+                    builder: (context) {
+                      final radius = node.radius, weight = node.weight;
+                      return SimulationCanvasObject(
+                        constraints: BoxConstraints.tight(
+                          Size(radius * 2, radius * 2),
                         ),
-                      ),
-                    );
-                  },
-                ),
-          ],
-        ),
-      ),
+                        node: node,
+                        edges: [...edges.where((e) => e.source == node)],
+                        edgeColor: edgeColor,
+                        child: NodeHitTester(
+                          node,
+                          onTap: () {
+                            setState(() => selectedNodeIndex = node.index);
+                          },
+                          onDragUpdate: (update) {
+                            final localPosition = _transformationController
+                                .toScene(update.globalPosition);
+                            final RenderObject iv =
+                                viewerContext.findRenderObject()!;
+                            final position =
+                                (iv as RenderBox).localToGlobal(localPosition);
+                            print({
+                              'node': '${node.x} ${node.y}',
+                              'position': '$position',
+                              'localPosition': '$localPosition',
+                              'update': '${update.localPosition}',
+                              'updateGlobal': '${update.globalPosition}',
+                              'renderBox': '$iv',
+                            });
+                            node
+                              ..fx = localPosition.dx - radius
+                              ..fy = localPosition.dy - radius;
+                            simulation..alphaTarget = 0.5;
+                          },
+                          onDragEnd: (_) {
+                            node
+                              ..fx = null
+                              ..fy = null;
+                            simulation.alphaTarget = 0;
+                          },
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            alignment: Alignment.center,
+                            children: [
+                              Container(
+                                width: radius * 2,
+                                height: radius * 2,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: nodeColor),
+                                  color: nodeColor.withOpacity(sqrt(weight)),
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: node.build(context),
+                              ),
+                              Positioned(
+                                bottom: -10,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      width: 2,
+                                      color: node.type.color.darken(),
+                                    ),
+                                    color: node.type.color,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: 5,
+                                    horizontal: 10,
+                                  ),
+                                  child: Text(
+                                    node.type.string,
+                                    style: Theme.of(context).textTheme.caption,
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }

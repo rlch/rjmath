@@ -8,6 +8,7 @@ class NodeHitTester extends SingleChildRenderObjectWidget {
   const NodeHitTester(
     this.node, {
     required Widget child,
+    required this.onTap,
     required this.onDragUpdate,
     required this.onDragEnd,
     Key? key,
@@ -15,6 +16,7 @@ class NodeHitTester extends SingleChildRenderObjectWidget {
 
   final Node node;
 
+  final GestureTapCallback onTap;
   final GestureDragUpdateCallback onDragUpdate;
   final GestureDragEndCallback onDragEnd;
 
@@ -22,6 +24,7 @@ class NodeHitTester extends SingleChildRenderObjectWidget {
   RenderObject createRenderObject(BuildContext context) {
     return RenderNodeHitTester(
       node,
+      onTap: onTap,
       onDragUpdate: onDragUpdate,
       onDragEnd: onDragEnd,
     );
@@ -32,6 +35,7 @@ class NodeHitTester extends SingleChildRenderObjectWidget {
       BuildContext context, covariant RenderNodeHitTester renderObject) {
     renderObject
       ..node = node
+      ..onTap = onTap
       ..onDragUpdate = onDragUpdate
       ..onDragEnd = onDragEnd;
   }
@@ -40,11 +44,14 @@ class NodeHitTester extends SingleChildRenderObjectWidget {
 class RenderNodeHitTester extends RenderProxyBox {
   RenderNodeHitTester(
     this._node, {
+    required GestureTapCallback onTap,
     required GestureDragUpdateCallback onDragUpdate,
     required GestureDragEndCallback onDragEnd,
-  })  : _onDragUpdate = onDragUpdate,
+  })  : _onTap = onTap,
+        _onDragUpdate = onDragUpdate,
         _onDragEnd = onDragEnd;
 
+  late final TapGestureRecognizer _tapGestureRecognizer;
   late final PanGestureRecognizer _panGestureRecognizer;
 
   Node _node;
@@ -52,6 +59,13 @@ class RenderNodeHitTester extends RenderProxyBox {
   set node(Node node) {
     if (node == _node) return;
     _node = node;
+  }
+
+  GestureTapCallback _onTap;
+  GestureTapCallback get onTap => _onTap;
+  set onTap(GestureTapCallback onTap) {
+    if (_onTap == onTap) return;
+    _tapGestureRecognizer.onTap = _onTap = onTap;
   }
 
   GestureDragUpdateCallback _onDragUpdate;
@@ -72,6 +86,8 @@ class RenderNodeHitTester extends RenderProxyBox {
   void attach(covariant PipelineOwner owner) {
     super.attach(owner);
 
+    _tapGestureRecognizer = TapGestureRecognizer(debugOwner: this)
+      ..onTap = _onTap;
     _panGestureRecognizer = PanGestureRecognizer(debugOwner: this)
       ..onUpdate = _onDragUpdate
       ..onEnd = _onDragEnd;
@@ -79,6 +95,7 @@ class RenderNodeHitTester extends RenderProxyBox {
 
   @override
   void detach() {
+    _tapGestureRecognizer.dispose();
     _panGestureRecognizer.dispose();
     super.detach();
   }
