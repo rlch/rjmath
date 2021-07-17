@@ -16,11 +16,25 @@ class Education extends ResumeNode {
 
   @override
   Widget build(BuildContext context) {
-    return AutoSizeText(
-      title,
-      textAlign: TextAlign.center,
-      minFontSize: 8,
-      wrapWords: false,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AutoSizeText(
+          title,
+          textAlign: TextAlign.center,
+          minFontSize: 8,
+          wrapWords: false,
+        ),
+        const SizedBox(height: 3),
+        AutoSizeText(
+          '${range.start.year} \u2014 ${range.end.year}',
+          style: Theme.of(context).textTheme.caption,
+          textAlign: TextAlign.center,
+          maxFontSize: 10,
+          minFontSize: 5,
+          maxLines: 1,
+        )
+      ],
     );
   }
 }

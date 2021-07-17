@@ -77,6 +77,9 @@ final List<ResumeNode> resumeNodes = [
   _ib,
   _act,
   _bcom,
+  _gameDev,
+  _unity,
+  _csharp,
 ];
 
 final Map<ResumeNode, Set<ResumeNode>?> _resumeEdges = {
@@ -105,11 +108,13 @@ final Map<ResumeNode, Set<ResumeNode>?> _resumeEdges = {
     _graphTheory,
     _crypto,
     _act,
+    _gameDev,
   },
   _stl: {
     _ib,
     _japanese,
     _spanish,
+    _math,
   },
   _unimelb: {
     _bcom,
@@ -119,6 +124,16 @@ final Map<ResumeNode, Set<ResumeNode>?> _resumeEdges = {
   _act: {
     _r,
     _ds,
+  },
+  _gaming: {
+    _gameDev,
+  },
+  _gameDev: {
+    _unity,
+    _dartFlutter,
+  },
+  _unity: {
+    _csharp,
   }
 };
 

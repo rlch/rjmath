@@ -105,7 +105,7 @@ class _CanvasScreenState extends State<CanvasScreen>
           transformationController: _transformationController,
           minScale: 0.2,
           maxScale: 2,
-          boundaryMargin: EdgeInsets.all(size.width * 20),
+          boundaryMargin: EdgeInsets.all(size.width * 2),
           child: SimulationCanvas(
             children: [
               for (final node in simulation.nodes)
@@ -128,18 +128,6 @@ class _CanvasScreenState extends State<CanvasScreen>
                           onDragUpdate: (update) {
                             final localPosition = _transformationController
                                 .toScene(update.globalPosition);
-                            final RenderObject iv =
-                                viewerContext.findRenderObject()!;
-                            final position =
-                                (iv as RenderBox).localToGlobal(localPosition);
-                            print({
-                              'node': '${node.x} ${node.y}',
-                              'position': '$position',
-                              'localPosition': '$localPosition',
-                              'update': '${update.localPosition}',
-                              'updateGlobal': '${update.globalPosition}',
-                              'renderBox': '$iv',
-                            });
                             node
                               ..fx = localPosition.dx - radius
                               ..fy = localPosition.dy - radius;

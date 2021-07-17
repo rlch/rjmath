@@ -24,4 +24,5 @@ class Interest extends ResumeNode {
 final _japanese = Interest(title: '日本語'),
     _spanish = Interest(title: 'Español'),
     _languages = Interest(title: 'Languages'),
-    _gaming = Interest(title: 'Gaming');
+    _gaming = Interest(title: 'Gaming'),
+    _gameDev = Interest(title: 'Game Development');

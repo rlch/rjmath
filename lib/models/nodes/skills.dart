@@ -31,4 +31,6 @@ final _dartFlutter = Skill(title: 'Dart/Flutter'),
     _dp = Skill(title: 'Data processing'),
     _crypto = Skill(title: 'Cryptography'),
     _math = Skill(title: 'Mathematics'),
-    _graphTheory = Skill(title: 'Graph Theory');
+    _graphTheory = Skill(title: 'Graph Theory'),
+    _unity = Skill(title: 'Unity'),
+    _csharp = Skill(title: 'C#');
