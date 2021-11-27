@@ -15,16 +15,22 @@ extension on Vector3 {
   Offset get offset => Offset(x, y);
 }
 
+/// extension on Size {
+///   Offset get offset => Offset(width, height);
+/// }
+
 class SimulationCanvas extends MultiChildRenderObjectWidget {
   SimulationCanvas({
     required List<Widget> children,
+
+    /// required this.canvasConstraints,
     Key? key,
   }) : super(children: children, key: key);
 
+  /// final BoxConstraints canvasConstraints;
+
   @override
-  RenderObject createRenderObject(BuildContext context) {
-    return RenderSimulationCanvas();
-  }
+  RenderSimulationCanvas createRenderObject(BuildContext context) => RenderSimulationCanvas();
 }
 
 class SimulationCanvasParentData extends ContainerBoxParentData<RenderBox> {
@@ -48,6 +54,14 @@ class RenderSimulationCanvas extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, SimulationCanvasParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, SimulationCanvasParentData> {
+  /// late BoxConstraints _canvasConstraints;
+  /// set canvasConstraints(BoxConstraints value) {
+  ///   if (_canvasConstraints == value) return;
+  ///   _canvasConstraints = value;
+  ///   markNeedsLayout();
+  ///   markNeedsPaint();
+  /// }
+
   @override
   void setupParentData(covariant RenderObject child) {
     if (child.parentData is! SimulationCanvasParentData) {
@@ -69,6 +83,7 @@ class RenderSimulationCanvas extends RenderBox
 
     RenderBox? child = firstChild;
 
+    child = firstChild;
     while (child != null) {
       final pd = child.parentData! as SimulationCanvasParentData;
       final centerOffset = Offset(pd.node.radius, pd.node.radius);
@@ -80,9 +95,7 @@ class RenderSimulationCanvas extends RenderBox
         final Vector3 A = (pd.offset + offset + centerOffset).vec,
             B = (Offset(e.x + e.radius, e.y + e.radius) + offset).vec,
             V = (B - A).normalized();
-        final vA = V * pd.node.radius,
-            vB = V * e.radius,
-            vtB = V * (e.radius + pd.arrowHeight);
+        final vA = V * pd.node.radius, vB = V * e.radius, vtB = V * (e.radius + pd.arrowHeight);
 
         final edgeA = A + vA, edgeB = B - vB;
         final edgePaint = Paint()
@@ -122,16 +135,11 @@ class RenderSimulationCanvas extends RenderBox
     canvas.restore();
   }
 
-  @override
-  void performLayout() {
-    size = _computeLayoutSize(constraints: constraints, dry: false);
-  }
-
   Size _computeLayoutSize({
     required BoxConstraints constraints,
     required bool dry,
   }) {
-    // double xStart = 0, xEnd = 0, yStart = 0, yEnd = 0;
+    double xStart = 0, xEnd = 0, yStart = 0, yEnd = 0;
     RenderBox? child = firstChild;
 
     while (child != null) {
@@ -146,22 +154,28 @@ class RenderSimulationCanvas extends RenderBox
         child.getDryLayout(childParentData.constraints);
       }
 
-      // xStart = min(xStart, childParentData.offset.dx);
-      // xEnd = max(
-      //   xEnd,
-      //   childParentData.offset.dx + childParentData.constraints.maxWidth,
-      // );
+      xStart = min(xStart, childParentData.offset.dx);
+      xEnd = max(
+        xEnd,
+        childParentData.offset.dx + childParentData.constraints.maxWidth,
+      );
 
-      // yStart = min(yStart, childParentData.offset.dy);
-      // yEnd = max(
-      //   yEnd,
-      //   childParentData.offset.dy + childParentData.constraints.maxHeight,
-      // );
+      yStart = min(yStart, childParentData.offset.dy);
+      yEnd = max(
+        yEnd,
+        childParentData.offset.dy + childParentData.constraints.maxHeight,
+      );
 
       child = childParentData.nextSibling;
     }
 
-    return constraints.biggest;
+    final biggest = constraints.biggest;
+
+    /// return Size(
+    ///   min(xEnd - xStart, biggest.width),
+    ///   min(yEnd - yStart, biggest.height),
+    /// );
+    return biggest;
   }
 
   @override
@@ -248,6 +262,37 @@ class RenderSimulationCanvas extends RenderBox
 
   @override
   bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
-    return defaultHitTestChildren(result, position: position);
+    RenderBox? child = lastChild;
+    while (child != null) {
+      final SimulationCanvasParentData childParentData = child.parentData! as SimulationCanvasParentData;
+      final bool isHit = result.addWithPaintOffset(
+        offset: childParentData.offset,
+        position: position,
+        hitTest: (BoxHitTestResult result, Offset? transformed) {
+          assert(transformed == position - childParentData.offset);
+          return child!.hitTest(result, position: transformed!);
+        },
+      );
+
+      if (isHit) return true;
+      child = childParentData.previousSibling;
+    }
+    return false;
+  }
+
+  @override
+  void performLayout() {
+    size = _computeLayoutSize(
+      constraints: constraints,
+      dry: false,
+    );
+  }
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) {
+    return _computeLayoutSize(
+      constraints: constraints,
+      dry: true,
+    );
   }
 }

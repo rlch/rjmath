@@ -1,7 +1,7 @@
 part of 'node.dart';
 
 class Interest extends ResumeNode {
-  Interest({required this.title}) : super(ResumeNodeType.interest);
+  Interest({required this.title});
 
   final String title;
 
@@ -15,10 +15,13 @@ class Interest extends ResumeNode {
     return AutoSizeText(
       title,
       textAlign: TextAlign.center,
-      minFontSize: 8,
+      presetFontSizes: presetFontSizes,
       wrapWords: false,
     );
   }
+
+  @override
+  ResumeNodeType get type => ResumeNodeType.interest;
 }
 
 final _japanese = Interest(title: '日本語'),

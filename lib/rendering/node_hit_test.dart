@@ -31,8 +31,7 @@ class NodeHitTester extends SingleChildRenderObjectWidget {
   }
 
   @override
-  void updateRenderObject(
-      BuildContext context, covariant RenderNodeHitTester renderObject) {
+  void updateRenderObject(BuildContext context, covariant RenderNodeHitTester renderObject) {
     renderObject
       ..node = node
       ..onTap = onTap
@@ -86,8 +85,7 @@ class RenderNodeHitTester extends RenderProxyBox {
   void attach(covariant PipelineOwner owner) {
     super.attach(owner);
 
-    _tapGestureRecognizer = TapGestureRecognizer(debugOwner: this)
-      ..onTap = _onTap;
+    _tapGestureRecognizer = TapGestureRecognizer(debugOwner: this)..onTap = _onTap;
     _panGestureRecognizer = PanGestureRecognizer(debugOwner: this)
       ..onUpdate = _onDragUpdate
       ..onEnd = _onDragEnd;
@@ -119,6 +117,8 @@ class RenderNodeHitTester extends RenderProxyBox {
     final canvas = context.canvas;
     canvas.save();
     context.paintChild(child!, offset);
+
+    /// canvas.drawRect(offset & child!.size, Paint()..color = Colors.green);
     canvas.restore();
   }
 }

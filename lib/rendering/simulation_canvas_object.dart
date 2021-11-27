@@ -1,10 +1,10 @@
 import 'package:rjmath/models/nodes/node.dart';
-import 'package:rjmath/widgets/simulation_canvas.dart';
 import 'package:flutter/material.dart';
 import 'package:d3_force_flutter/d3_force_flutter.dart';
 
-class SimulationCanvasObject
-    extends ParentDataWidget<SimulationCanvasParentData> {
+import 'simulation_canvas.dart';
+
+class SimulationCanvasObject extends ParentDataWidget<SimulationCanvasParentData> {
   const SimulationCanvasObject({
     required Widget child,
     required this.node,

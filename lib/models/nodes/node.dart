@@ -2,6 +2,9 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:d3_force_flutter/d3_force_flutter.dart' as f;
 import 'package:flutter/material.dart';
 import 'package:flutter_nord_theme/flutter_nord_theme.dart';
+import 'package:intl/intl.dart';
+import '../../constants.dart';
+import '../unbounded_date_time_range.dart';
 
 part 'education.dart';
 part 'experience.dart';
@@ -50,15 +53,18 @@ extension ResumeNodeTypeX on ResumeNodeType {
 }
 
 abstract class ResumeNode extends f.Node {
-  ResumeNode(this.type);
-
-  final ResumeNodeType type;
+  ResumeNodeType get type;
   double weight = 1, radius = 50;
 
   Widget build(BuildContext context);
 }
 
 final List<ResumeNode> resumeNodes = [
+  _tutero,
+  _mm,
+  _rust,
+  _lua,
+  _cs,
   _dartFlutter,
   _python,
   _ds,
@@ -80,9 +86,24 @@ final List<ResumeNode> resumeNodes = [
   _gameDev,
   _unity,
   _csharp,
+  _js,
+  _ts,
+  _neo4j,
 ];
 
 final Map<ResumeNode, Set<ResumeNode>?> _resumeEdges = {
+  _cs: {
+    _ds,
+    _r,
+    _rust,
+    _lua,
+    _python,
+    _csharp,
+    _js,
+    _ts,
+    _neo4j,
+  },
+  _neo4j: {_graphTheory},
   _ds: {
     _python,
     _r,
@@ -103,6 +124,7 @@ final Map<ResumeNode, Set<ResumeNode>?> _resumeEdges = {
   _crypto: {
     _python,
     _dartFlutter,
+    _rust,
   },
   _math: {
     _graphTheory,
@@ -134,7 +156,19 @@ final Map<ResumeNode, Set<ResumeNode>?> _resumeEdges = {
   },
   _unity: {
     _csharp,
-  }
+  },
+  _tutero: {
+    _dartFlutter,
+    _neo4j,
+    _rust,
+    _js,
+    _ts,
+    _math,
+    _graphTheory,
+  },
+  _mm: {
+    _dartFlutter,
+  },
 };
 
 final List<f.Edge<ResumeNode>> resumeEdges = _resumeEdges.entries
