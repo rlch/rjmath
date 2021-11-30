@@ -15,19 +15,11 @@ extension on Vector3 {
   Offset get offset => Offset(x, y);
 }
 
-/// extension on Size {
-///   Offset get offset => Offset(width, height);
-/// }
-
 class SimulationCanvas extends MultiChildRenderObjectWidget {
   SimulationCanvas({
     required List<Widget> children,
-
-    /// required this.canvasConstraints,
     Key? key,
   }) : super(children: children, key: key);
-
-  /// final BoxConstraints canvasConstraints;
 
   @override
   RenderSimulationCanvas createRenderObject(BuildContext context) => RenderSimulationCanvas();
@@ -54,14 +46,6 @@ class RenderSimulationCanvas extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, SimulationCanvasParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, SimulationCanvasParentData> {
-  /// late BoxConstraints _canvasConstraints;
-  /// set canvasConstraints(BoxConstraints value) {
-  ///   if (_canvasConstraints == value) return;
-  ///   _canvasConstraints = value;
-  ///   markNeedsLayout();
-  ///   markNeedsPaint();
-  /// }
-
   @override
   void setupParentData(covariant RenderObject child) {
     if (child.parentData is! SimulationCanvasParentData) {
@@ -169,13 +153,7 @@ class RenderSimulationCanvas extends RenderBox
       child = childParentData.nextSibling;
     }
 
-    final biggest = constraints.biggest;
-
-    /// return Size(
-    ///   min(xEnd - xStart, biggest.width),
-    ///   min(yEnd - yStart, biggest.height),
-    /// );
-    return biggest;
+    return constraints.biggest;
   }
 
   @override
@@ -254,7 +232,6 @@ class RenderSimulationCanvas extends RenderBox
     return end - start;
   }
 
-  /// Baseline
   @override
   double? computeDistanceToActualBaseline(TextBaseline baseline) {
     return defaultComputeDistanceToFirstActualBaseline(baseline);

@@ -58,8 +58,8 @@ class SimulationParameters {
         ),
         manyBodyForce = RangedSimulationParameter(
           manyBodyForce,
-          min: -200,
-          max: 200,
+          min: -500,
+          max: 500,
           title: 'Many-Body Force',
           description:
               r'Applies equally amongst all nodes, simulates attraction when positive, and repulsion when negative.',

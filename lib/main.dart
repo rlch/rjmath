@@ -6,6 +6,7 @@ import 'widgets/canvas.dart';
 void main() {
   runApp(
     MaterialApp(
+      title: 'Richard Mathieson',
       theme: NordTheme.light(),
       darkTheme: NordTheme.dark(),
       themeMode: ThemeMode.system,
