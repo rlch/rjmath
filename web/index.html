@@ -23,7 +23,7 @@
   <meta name="apple-mobile-web-app-title" content="rjmath">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <title>rjmath</title>
+  <title>Richard Mathieson</title>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
@@ -94,5 +94,17 @@
       loadMainDartJs();
     }
   </script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.5.0/firebase-app.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDeY_jOqkbkmGXgliJ6RTA76VeFqAMIWfs",
+    authDomain: "rjmath-299509.firebaseapp.com",
+    projectId: "rjmath-299509",
+    storageBucket: "rjmath-299509.appspot.com",
+    messagingSenderId: "656256952051",
+    appId: "1:656256952051:web:556b9eaa096f74219cb986"
+  };
+  const app = initializeApp(firebaseConfig);
+</script>
 </body>
 </html>
